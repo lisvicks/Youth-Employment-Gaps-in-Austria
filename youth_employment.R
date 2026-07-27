@@ -8,7 +8,6 @@ library(stargazer)
 library(margins)
 library(forcats)
 library(pROC)
-install.packages("VGAM")
 library(VGAM)
 library(nnet)
 
@@ -34,12 +33,9 @@ nrow(full_codebook_df)
 write.csv(full_codebook_df, "full_transcript")
 write.csv(full_df, "full_data")
 
-
-
 # read the codebook with answers
 answers <- read_tsv("10852_vi_de_v2_0.tab")
 write.csv(answers, "people_answers")
-
 
 # read the dataset
 df_2024 <- read_tsv("2024_10852_da10_de_v1_0.tab")
@@ -55,86 +51,13 @@ combined_df <- bind_rows(
   .id = "year"   # optional
 )
 
-
 young_df <- combined_df %>%
   filter(balt >= 15 & balt <= 34)
 #write_csv(young_df, "young_df.csv")
 
-########################################################################################
-#Germany, EU members (Austria, EU, EU from 2004 vs non-EU) - check with the sample size - count Germans with Austrians
-
-#Industry: look at the previous job and compare it: $WHat?§ 
-
-#split sample employed/non employed people:§do they mean for the desired hours etc?§
-
-#education variable include to the full sample
-
-#control for the region: §but we do, no?§
-
-#we also can only look at vienna (but check the sample size)
-
-#separate regression for not employed people for desired hours - 2nd aspect - split the sample: not employed vs employed 
-
-#first full regression, then add additional
-
-#should add the oaxaca decomposition 
-
-#marital status
-#we can count Germans as Austrians cuz ye language, big migration group 
-
-#variables from the workbook page 86
-#for the non employed people job search and how they search for jobs 
-
-########################################################################################
-#todo:
-#First get some results that you can interpret well and that make sense. 
-#For unemployed do descriptives:, look at workbook page 86, 
-#for industry: descriptives for the employed
-#Are their interesting aspects for the unemployed to look at?
-#For the countries of origin: Combine xbstaa16 3 (germany) with 1(austria), then you are left with the other categories. 1-16.
-#See if the sample sizes allow for further splitting of the sample
-#Potentially do a larger datasample and split them. 
-########################################################################################
-#Own questions:
-#Is there a different way to handle municipality size, it seems to introduce a lot of noise. Also what is with number 15?
-#What exactly do they mean by industry?
-# For educ, should we use kab11 or xkartab - kab11
-########################################################################################
-#use urbanisation, do both widowed and divorced as single.
-#Industry: A descriptive analysis first
-#In general do 3 models: employment logit and then 2 samples with variables that are defined for both groups, decompositions. 
-#if we include vienna, we should find justification. ALso: maybe just use a dummy for vienna and interact it with the migration background. 
-#kab11
-#Extension: Decomposition, country of origin maybe? 
-#Descriptives for job search page 86: difference between natives and migrants. If you see a nice pattern, maybe you can integrate it into the model.
-#Always start with descriptives 
-#Vienna: In the descriptives Vienna was the only city with the biggest amount of people with migration background. 
-############################################
-
-
-#Some things to discuss:
-#why age squared? - look into it
-#I would suggest to change the way we measure our dependent variable
-#I have changed marital and municipality
-#I have done 3 origin models, 1 with the total sample. I would suggest to bounce it off them in the presentation and then include it in the paper if they agree or find it interesting. I might need to do some descriptives though on my choice of how I split them up, I dont know yet. 
-#In the paper I would also do the oaxaca 
-#I will look into the interpretation of the models, I am not great when it comes to that stuff
-#What is the code concerning education in the beginning? - kab11
-# Is our model now: dependent on age, age^2, gender, educ, live_parents, marital, hh-size and urbanisation + year FE?
-
-
-#TODo NOW:
-# exp all, conclude
-#use the weights once?
-#OPTIONAL:
-# look at page 86
-# origin decomposition
-########################################################################################
+                     
 ########################################################################################
 #                                     SETUP
-
-
-
 
 # For models. Introduce variables, or rather change and rename them
 young_df$bfst<-as.character(young_df$bfst)
@@ -270,9 +193,6 @@ print(auc(test$employed, test$pred)) #the response are the binary variables like
 ########################################################################################
 #                                         stargazer
 
-
-
-
 stargazer(model_emp_all, )
 
 f<-function(x) exp(x)
@@ -280,9 +200,6 @@ stargazer(model_emp_all, apply.coef = f,
           title = "Model1",
           out = "1.3.html",
           align = TRUE)
-
-
-
 
 # Marginal effects or Average partial
 margins(model_emp_all, variables = "migr_bg")
@@ -313,10 +230,6 @@ stargazer(model,
 exp(coef(model))
 
 
-
-#should do some overfitting tests
-
-
 ########################################################################################
 #                                   Model 3: Want to work?
 ########################################################################################
@@ -325,19 +238,14 @@ n_emp_df <- young_df_model %>%
 #sample sizes
 #nrow(inactive_df) #23716 vs 32136 if you exclude hawun=NA, vs #77218 that are employed
 
-
-
 inactive_df <- young_df_model %>%
   filter(employed == 0, hawun %in% c(1, 2))   # 1 = wants to work, 2 = no. There is also -3, which is a missing value
-
 
 #changes it to a binary variable
 
 inactive_df <- inactive_df %>%
   mutate(want_work = as.integer(hawun == 1))  # 1 = wants to work
 #this just makes it be 0/1. Length still 23761
-
-
 
 model_want <- glm(
   want_work ~ migr_bg + female + age + I(age^2) +
@@ -347,23 +255,17 @@ model_want <- glm(
   data = inactive_df
 )
 
-
 summary(model_want)
 exp(coef(model_want))
 
-
-
 ########################################################################################
 #                                   TESTS
-
-
 #overfitting
 n <- nrow(inactive_df)
 train <- sample(seq_len(n), size = floor(0.7 * n))
 
 train <- inactive_df[train, , drop = FALSE]
 test  <- inactive_df[setdiff(seq_len(n), train), , drop = FALSE]
-
 
 model_train <- glm(
   want_work ~ migr_bg + female + age + I(age^2) + educ +
@@ -382,15 +284,11 @@ test$pred  <- predict(model_train, newdata = test, type = "response")
 print(auc(train$want_work, train$pred))
 print(auc(test$want_work, test$pred))
 
-#0.7 and 0.019
-
-
 null_want <- glm(want_work ~ 1, family = binomial(link = "logit"), data = inactive_df)
 
 # Calculate McFadden's Pseudo R-squared
 print(1 - (logLik(model_want) / logLik(null_want))) 
 #0.086....not great
-
 
 margins(model_want, variables = "migr_bg")
 
@@ -398,7 +296,6 @@ stargazer(model_want, apply.coef = f,
           title = "Model2",
           out = "1.3.html",
           align = TRUE)
-
 
 ########################################################################################
 #                                   Model 4.1: Vienna base
@@ -408,7 +305,6 @@ vienna<-young_df_model %>% filter(bundesland=="Vienna")
 nrow(vienna) #we have a sample size of 16882, instead of 109264, a reduction of 85%
 1-nrow(vienna)/nrow(young_df_model)
 
-#for vienna, both the regional nuts2 controls and the municipality sizes are useless. Urbanisation also makes no sense obv. 
 model_vienna <-glm(employed ~ migr_bg +female + age + I(age^2) + educ +
                      live_parents + nr_child +marital +
                    year_fe , 
@@ -450,8 +346,6 @@ print(auc(train$employed, train$pred))-print(auc(test$employed, test$pred))
 
 #slight difference, nothing to worry about
 
-
-
 ########################################################################################
 #                               Model 4.2: Vienna desire for more hours
 ########################################################################################
@@ -459,14 +353,10 @@ print(auc(train$employed, train$pred))-print(auc(test$employed, test$pred))
 emp_df2 <- vienna %>%
   filter(employed == 1, !is.na(dmws))
 
-
-
-
 model_hours_vienna <- multinom(dmws ~ migr_bg + female + age + I(age^2) +
                           educ + live_parents + nr_child + marital
                          + year_fe,
                         data = emp_df2)
-
 
 exp(coef(model_hours_vienna))
 
@@ -481,16 +371,12 @@ n_obs / n_pred
 n_obs
 #we have 10709 observations and about 1070 per predictor(10), which is probably enough.
 
-
-
 ########################################################################################
 #                              Model 4.3: Vienna want to work? - does not work
 ########################################################################################
 
 inactive_df <- vienna %>%
   filter(employed == 0, hawun %in% c(1, 2))   # 1 = wants to work, 2 = no. There is also -3, which is a missing value
-
-
 
 #unemployed but want to work
 inactive_df <- inactive_df %>%
@@ -520,20 +406,12 @@ young_df_origin <- young_df_model %>%
 young_df_origin <- young_df_origin %>%
   mutate(xbstaa16 = fct_collapse(xbstaa16, "1" = c("2", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15")))
 
-
-
 summary(young_df_model$xbstaa16)
 table(young_df_origin$xbstaa16)
 table(young_df_model$xbzzgla16) #Zuzugsland 16 Gruppen f_bzzgland
-#2 and 4 are EU (>2004), 1 is AUT, 3 ia GER, 8UK and EFTA (Nor, SW, Li, Ic) 5,6,7&11 -Balkan, 13 America,
-#12 Africa, 14 Asia, 15 Afghanistan and Syria, 16 unknown, 10 Turkey
-#9 is other european non-eu countries and I think this includes Ukraine, Russia, Belarus, Azerbaijan, Molodva and Georgia 
 
-#Do one run with 1 and 3 vs everyone
-#Second one where I would combine 12, 14, 15 and 10. vs 1 and 3 and the rest
-#Then maybe try a thrid run and add 9, 13 and 5,6,7&11.
-#If not enough, do below
-#drop the 16
+
+                     
 ########################################################################################
 #                                       MODEL
 
@@ -554,7 +432,6 @@ null_origin <- glm(employed ~ 1, family = binomial(link = "logit"), data = young
 # Calculate McFadden's Pseudo R-squared
 print(1 - (logLik(model_young_origin_emp) / logLik(null_origin))) 
 #0.194
-
 
 
 #overfitting
@@ -581,9 +458,6 @@ auc_test  <- auc(test$employed, test$pred)
 auc_train
 auc_test
 #0.7845 vs 0.7854
-
-
-
 
 
 
@@ -656,16 +530,11 @@ print(auc(test$employed, test$pred))
 
 
 
-
-
-
-
 ##########################################################################################
 #                                     PROBABLY UNNECESSARY
 ##########################################################################################
 #Adding the rest of european countries and america (11 and 13)
-#balkan thats not in the eu(11)
-#one outlier is ukraine, will check below(9) - but thats like 760 people
+                     
 young_df_origin <- young_df_model %>%
   mutate(xbstaa16 = fct_collapse(xbstaa16, "0" = c("1","2",  "3", "4", "5", "6", "7", "8","11", "13")))
 
@@ -680,7 +549,6 @@ model_young_expand_emp <-glm(employed ~ xbstaa16 +female + age + I(age^2) + educ
 summary(model_young_expand_emp)
 
 ###############################################
-#old and expanded
 
 origin_df <- combined_df %>%
   filter(balt >= 15 & balt <= 65)
@@ -756,9 +624,6 @@ print(1 - (logLik(model_old_expand_emp) / logLik(null_origin)))
 #0.2286
 #even here, the pseudo R^2 is negative for clustering germans and austrians but positive for migrational background. 
 table(origin_old$xbstaa16)
-
-
-#################
 
 
 ########################################################################################
@@ -1262,16 +1127,7 @@ lapply(oaxaca_results, \(x) x$blocks)
 # Deep dive example:
 # oaxaca_results$emp_all$variables
 ########################################################################################
-
-
-
-
-
-
-
-
-
-########################################################################################
+                     
 oaxaca(
   employed ~ female + educ + age + I(age^2) + live_parents + nr_child + marital + bundesland + year | migr_bg,
   data = young_df_model,
@@ -1305,9 +1161,6 @@ model_hours <- lm(
 )
 
 
-
-
-
 model_emp_all <- glm(
   employed ~ migr_bg + female + age + I(age^2) + educ +
     live_parents + nr_child + marital +
@@ -1319,10 +1172,6 @@ model_emp_all <- glm(
 )
 
 
-
-
-
-
 m0 <- lm(dmws ~ female + educ + age + I(age^2) + live_parents + nr_child + marital + bundesland + year,   data = young_df_model, subset = migr_bg == 0)
 m1 <- lm(dmws ~ female + educ + age + I(age^2) + live_parents + nr_child + marital + bundesland + year,   data = young_df_model, subset = migr_bg == 1)
 
@@ -1332,8 +1181,6 @@ X1 <- colMeans(model.matrix(m1))
 model.matrix(m0)
 
 #forms row and column sums and means
-
-
 
 beta0 <- coef(m0)
 beta1 <- coef(m1)
