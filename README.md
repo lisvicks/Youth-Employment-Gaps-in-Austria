@@ -36,10 +36,8 @@ The analytical sample consists of individuals aged 15–34.
 
 ## Repository Structure
 
-- `analysis.R` — data preparation, regression models, robustness checks, and decomposition analysis
-- `Research_Project_Youth_Migration.pdf` — full research report
-- `figures/` — model evaluation and descriptive figures
-- `output/` — regression and decomposition tables
+- `youth_employment.R` — data preparation, regression models, robustness checks, and decomposition analysis
+- `tables/` — model evaluation and descriptive figures
 - `data/README.md` — information about the data source
 
 ## Tools
