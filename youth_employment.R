@@ -1,3 +1,17 @@
+# ============================================================
+# Youth Employment Gaps in Austria
+# ============================================================
+# This script analyses employment differences between young
+# migrants and native-born individuals in Austria using
+# Labour Force Survey data for 2022–2024.
+#
+# Main methods:
+# - Descriptive statistics
+# - Logistic regression
+# - ROC/AUC model evaluation
+# - Oaxaca–Blinder decomposition
+# ============================================================
+
 # load libraries
 library(oaxaca)
 library(readr)
